@@ -1,0 +1,24 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t lezinou/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run lezinou/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t lezinou/multi-client ./client
+  - docker build -t lezinou/multi-nginx ./nginx
+  - docker build -t lezinou/multi-server ./server
+  - docker build -t lezinou/multi-worker ./worker
+  # Log in docker CLI
+  - echo "$docker_password" | docker login -u "$docker_ID" --password-stdin
+  # Push images to Docker hub
+  - docker push lezinou/multi-client
+  - docker push lezinou/multi-nginx
+  - docker push lezinou/multi-server
+  - docker push lezinou/multi-worker
+
+
